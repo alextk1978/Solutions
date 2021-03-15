@@ -14,36 +14,19 @@ public class Solution {
     public static Map<String, String> runtimeStorage = new HashMap<>();
 
     public static void save(OutputStream outputStream) throws Exception {
-        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
+        Properties properties = new Properties();
         for (Map.Entry<String, String> entry : runtimeStorage.entrySet()) {
-            bufferedWriter.write(entry.getKey() + "=" + entry.getValue());
-            bufferedWriter.newLine();
+            properties.put(entry.getKey(), entry.getValue());
         }
-        bufferedWriter.close();
+        properties.store(outputStream, properties.toString());
     }
 
     public static void load(InputStream inputStream) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-        while (reader.ready()) {
-            String line = reader.readLine().trim();
-            if (line.charAt(0) != '#' & line.charAt(0) != '!') {
-                String key;
-                String value;
-                for (int i = 1; i < line.length(); i++) {
-                    if (line.charAt(i - 1) != '\\' & (line.charAt(i) == '=' || line.charAt(i) == ':')) {
-                        key = line.substring(0, i).trim();
-                        value = line.substring(i + 1).trim();
-                        //if (value.charAt(0) == '=' || value.charAt(0) == ':') value = value.substring(1).trim();
-                        if (value.endsWith("\\")) {
-                            value = value.substring(0, value.length() - 1) + reader.readLine().trim();
-                        }
-                        runtimeStorage.put(key, value);
-                        break;
-                    }
-                }
-            }
+        Properties properties = new Properties();
+        properties.load(inputStream);
+        for (String key : properties.stringPropertyNames()) {
+            runtimeStorage.put(key, properties.getProperty(key));
         }
-        reader.close();
     }
 
     public static void main(String[] args) throws Exception {
